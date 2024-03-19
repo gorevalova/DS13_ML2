@@ -1,7 +1,7 @@
 import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-from pickle import dump, load
+import pickle
 import pandas as pd
 
 import pandas as pd
@@ -43,7 +43,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
-
+from pickle import dump, load
 def model_page():
 
     # Загрузка файла test_data.csv из папки data
@@ -63,15 +63,18 @@ def model_page():
         df_test['tempo'] = df_test['tempo'].fillna(120.011)
         df_test['key'] = df_test['key'].fillna('Pusto')
 
-        model = joblib.load('final_model.pkl')  # Загрузка модели с помощью joblib
+        with open('data/final_model_test.pkl', 'rb') as file:
+            model = pickle.load(file)
 
         predictions = model.predict(df_test)
 
-        # Добавление предсказаний в тестовый датафрейм
-        test_df['predicted_genre'] = predictions
+        predicted_genres = [genre[0] for genre in predictions]
 
-        # Вывод таблицы с объединенными данными (тестовый датафрейм и предсказанный музыкальный жанр)
+        # Присвоение предсказанных жанров столбцу 'predicted_genre'
+        test_df['predicted_genre'] = predicted_genres
+        st.write("### Пример тестовых данных с предсказанием:")
         st.write(test_df)
+
 
     else:
         st.write("Файл train_data.csv не найден в папке data.")
