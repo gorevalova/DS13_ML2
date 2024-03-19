@@ -1,89 +1,79 @@
-
+import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from pickle import dump, load
 import pandas as pd
 
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pickle
+import os
+import joblib
 
-def split_data(df: pd.DataFrame):
-    y = df['Survived']
-    X = df[["Pclass", "Sex", "Age", "SibSp", "Parch", "Embarked"]]
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
+from catboost import CatBoostClassifier
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from catboost import CatBoostRegressor
 
-    return X, y
+from sklearn.metrics import f1_score
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
+from category_encoders.ordinal import OrdinalEncoder
+from category_encoders.one_hot import OneHotEncoder
+from category_encoders.target_encoder import TargetEncoder
+from category_encoders.leave_one_out import LeaveOneOutEncoder
 
-def open_data(path="data/titanic_dataset_train.csv"):
-    df = pd.read_csv(path)
-    df = df[['Survived', "Pclass", "Sex", "Age", "SibSp", "Parch", "Embarked"]]
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
-    return df
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
 
+def model_page():
 
-def preprocess_data(df: pd.DataFrame, test=True):
-    df.dropna(inplace=True)
+    # Загрузка файла test_data.csv из папки data
+    file_path = 'data/test_data.csv'
+    if os.path.exists(file_path):
+        df_test = pd.read_csv(file_path)
+        test_df = pd.read_csv(file_path)
 
-    if test:
-        X_df, y_df = split_data(df)
+        st.write("### Пример тестовых данных:")
+        st.write(df_test.sample(10))
+
+        df_test = df_test.drop(['instance_id', 'obtained_date'], axis=1)
+        df_test['track_name'] = df_test['track_name'].apply(lambda x: len(str(x)))
+        df_test.loc[(df_test['mode'] == 'Major'), 'mode'] = 1
+        df_test.loc[(df_test['mode'] == 'Minor'), 'mode'] = -1
+        df_test['mode'] = df_test['mode'].fillna(0)
+        df_test['tempo'] = df_test['tempo'].fillna(120.011)
+        df_test['key'] = df_test['key'].fillna('Pusto')
+
+        model = joblib.load('final_model.pkl')  # Загрузка модели с помощью joblib
+
+        predictions = model.predict(df_test)
+
+        # Добавление предсказаний в тестовый датафрейм
+        test_df['predicted_genre'] = predictions
+
+        # Вывод таблицы с объединенными данными (тестовый датафрейм и предсказанный музыкальный жанр)
+        st.write(test_df)
+
     else:
-        X_df = df
-
-    to_encode = ['Sex', 'Embarked']
-    for col in to_encode:
-        dummy = pd.get_dummies(X_df[col], prefix=col)
-        X_df = pd.concat([X_df, dummy], axis=1)
-        X_df.drop(col, axis=1, inplace=True)
-
-    if test:
-        return X_df, y_df
-    else:
-        return X_df
+        st.write("Файл train_data.csv не найден в папке data.")
 
 
-def fit_and_save_model(X_df, y_df, path="data/model_weights.mw"):
-    model = RandomForestClassifier()
-    model.fit(X_df, y_df)
-
-    test_prediction = model.predict(X_df)
-    accuracy = accuracy_score(test_prediction, y_df)
-    print(f"Model accuracy is {accuracy}")
-
-    with open(path, "wb") as file:
-        dump(model, file)
-
-    print(f"Model was saved to {path}")
-
-
-def load_model_and_predict(df, path="data/model_weights.mw"):
-    with open(path, "rb") as file:
-        model = load(file)
-
-    prediction = model.predict(df)[0]
-    # prediction = np.squeeze(prediction)
-
-    prediction_proba = model.predict_proba(df)[0]
-    # prediction_proba = np.squeeze(prediction_proba)
-
-    encode_prediction_proba = {
-        0: "Вам не повезло с вероятностью",
-        1: "Вы выживете с вероятностью"
-    }
-
-    encode_prediction = {
-        0: "Сожалеем, вам не повезло",
-        1: "Ура! Вы будете жить"
-    }
-
-    prediction_data = {}
-    for key, value in encode_prediction_proba.items():
-        prediction_data.update({value: prediction_proba[key]})
-
-    prediction_df = pd.DataFrame(prediction_data, index=[0])
-    prediction = encode_prediction[prediction]
-
-    return prediction, prediction_df
-
-
-if __name__ == "__main__":
-    df = open_data()
-    X_df, y_df = preprocess_data(df)
-    fit_and_save_model(X_df, y_df)

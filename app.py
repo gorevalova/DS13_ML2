@@ -1,18 +1,20 @@
 import streamlit as st
 from about import about_page
 from EDA import eda_page
+from model import model_page
 
 # Главная страница
 def main():
-    st.title('Многостраничное приложение')
+    st.title('Групповой проект по ML')
 
-    menu = ['About', 'EDA']
-    choice = st.sidebar.selectbox('Навигация', menu)
+    page = st.sidebar.radio('Выберите страницу', ['About', 'EDA', 'Модель'])
 
-    if choice == 'About':
+    if page == 'About':
         about_page()
-    elif choice == 'EDA':
+    elif page == 'EDA':
         eda_page()
+    elif page == 'Модель':
+        model_page()
 
 if __name__ == '__main__':
     main()
