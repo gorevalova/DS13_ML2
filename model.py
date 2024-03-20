@@ -53,7 +53,7 @@ def model_page():
         test_df = pd.read_csv(file_path)
 
         st.write("### Пример тестовых данных:")
-        st.write(df_test.sample(10))
+        st.write(df_test)
 
         df_test = df_test.drop(['instance_id', 'obtained_date'], axis=1)
         df_test['track_name'] = df_test['track_name'].apply(lambda x: len(str(x)))
