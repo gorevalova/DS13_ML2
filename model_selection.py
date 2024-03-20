@@ -16,7 +16,7 @@ def select_page():
         loudness = st.slider('Громкость', min_value=-40.0, max_value=0.0, value=-7.0, step=0.1)
         mode = st.selectbox('Лад', ('Мажор', 'Минор'))
         speechiness = st.slider('Выразительность', min_value=0.0, max_value=1.0, value=0.2, step=0.01)
-        tempo = st.slider('Тем', min_value=0.0, max_value=200.0, value=100.0, step=0.01)
+        tempo = st.slider('Темп', min_value=0.0, max_value=200.0, value=100.0, step=0.01)
         valence = st.slider('Привлекательность', min_value=0.0, max_value=1.0, value=0.5, step=0.01)
 
         if st.button('Предсказать'):

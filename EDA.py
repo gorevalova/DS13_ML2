@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def eda_page():
+
     # Загрузка файла train_data.csv из папки data
     file_path = 'data/train_data.csv'
     if os.path.exists(file_path):
@@ -92,7 +93,7 @@ def eda_page():
         plt.ylabel('Количество треков')
         st.pyplot(fig)
 
-        st.write('### График: Количество значений в поле "key" для каждого значения в поле "music_genre"')
+        st.write('### Количество значений в поле "key" для каждого значения в поле "music_genre"')
         mode_counts = df.groupby('music_genre')['key'].value_counts()
         mode_counts = mode_counts.unstack()
         # Построение графика
